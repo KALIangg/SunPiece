@@ -1,316 +1,281 @@
--- Módulo VampzLib
-
 local VampzLib = {}
+
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("StarterGui")
 
-function VampzLib:Notify(title, text, duration)
-	CoreGui:SetCore("SendNotification", {
-		Title = title or "Notification",
-		Text = text or "This is a notification!",
-		Duration = duration or 5,
-	})
-end
-
-function VampzLib:create(class, props)
-	local inst = Instance.new(class)
-	for prop, val in pairs(props) do
-		inst[prop] = val
+function VampzLib:create(class, properties)
+	local obj = Instance.new(class)
+	for i, v in pairs(properties) do
+		obj[i] = v
 	end
-	return inst
+	return obj
 end
 
-function VampzLib:CreateWindow(settings)
-	settings = settings or {}
-	local title = settings.Title or "Vampz UI"
-
-	local ScreenGui = self:create("ScreenGui", {
-		Name = "VampzLibUI",
+function VampzLib:CreateWindow(title)
+	local screenGui = self:create("ScreenGui", {
+		Name = "VampzUI",
 		ResetOnSpawn = false,
-		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-		Parent = LocalPlayer:WaitForChild("PlayerGui")
+		Parent = game:GetService("CoreGui")
 	})
 
-	-- Aumentando o tamanho da janela principal
-	local MainFrame = self:create("Frame", {
-		Name = "MainFrame",
-		Size = UDim2.new(0, 800, 0, 450),  -- Aumentei o tamanho da janela
-		Position = UDim2.new(0, 5, 0, 5),
-		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+	local main = self:create("Frame", {
+		Size = UDim2.new(0, 550, 0, 500),
+		Position = UDim2.new(0.5, -275, 0.5, -250),
+		BackgroundColor3 = Color3.fromRGB(25, 25, 25),
 		BorderSizePixel = 0,
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Draggable = true,
-		Active = true,
-		Parent = ScreenGui
+		Parent = screenGui
 	})
 
-	self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = MainFrame })
+	self:create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = main })
 
-	local TopBar = self:create("Frame", {
-		Size = UDim2.new(1, 0, 0, 35),
-		BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-		Parent = MainFrame
-	})
-
-	self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = TopBar })
-
-	local TitleLabel = self:create("TextLabel", {
+	local titleLabel = self:create("TextLabel", {
+		Size = UDim2.new(1, 0, 0, 40),
+		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
 		Text = title,
-		Font = Enum.Font.GothamBold,
 		TextColor3 = Color3.new(1, 1, 1),
-		TextSize = 16,
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, -70, 1, 0),
-		Position = UDim2.new(0, 10, 0, 0),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = TopBar
-	})
-
-	local MinimizeBtn = self:create("TextButton", {
-		Text = "-",
 		Font = Enum.Font.GothamBold,
-		TextColor3 = Color3.new(1, 1, 1),
-		TextSize = 16,
+		TextSize = 18,
+		Parent = main
+	})
+	self:create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = titleLabel })
+
+	local scrollingFrame = self:create("ScrollingFrame", {
+		Size = UDim2.new(1, -20, 1, -60),
+		Position = UDim2.new(0, 10, 0, 50),
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		ScrollBarThickness = 8,
 		BackgroundTransparency = 1,
-		Size = UDim2.new(0, 35, 1, 0),
-		Position = UDim2.new(1, -70, 0, 0),
-		Parent = TopBar
+		Parent = main
 	})
 
-	local CloseBtn = self:create("TextButton", {
-		Text = "✕",
-		Font = Enum.Font.GothamBold,
-		TextColor3 = Color3.new(1, 1, 1),
-		TextSize = 16,
-		BackgroundTransparency = 1,
-		Size = UDim2.new(0, 35, 1, 0),
-		Position = UDim2.new(1, -35, 0, 0),
-		Parent = TopBar
-	})
-
-	-- Aumentando a área do ScrollingFrame e ajustando o CanvasSize
-	local ContentFrame = self:create("ScrollingFrame", {
-		Name = "Content",
-		Size = UDim2.new(1, -20, 1, -45),
-		Position = UDim2.new(0, 10, 0, 40),
-		BackgroundTransparency = 1,
-		CanvasSize = UDim2.new(0, 0, 0, 0),  -- CanvasSize será ajustado dinamicamente
-		ScrollingDirection = Enum.ScrollingDirection.Y,
-		Parent = MainFrame
-	})
-
-	self:create("UIListLayout", {
+	local layout = self:create("UIListLayout", {
 		SortOrder = Enum.SortOrder.LayoutOrder,
-		Padding = UDim.new(0, 10),
-		Parent = ContentFrame
+		Padding = UDim.new(0, 8),
+		Parent = scrollingFrame
 	})
 
-	-- Configuração do botão de minimizar
-	local minimized = false
-	local originalSize = MainFrame.Size
-
-	MinimizeBtn.MouseButton1Click:Connect(function()
-		minimized = not minimized
-		local newSize = minimized and UDim2.new(originalSize.X.Scale, originalSize.X.Offset, 0, 35) or originalSize
-		TweenService:Create(MainFrame, TweenInfo.new(0.3), { Size = newSize }):Play()
-		ContentFrame.Visible = not minimized
+	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 20)
 	end)
 
-	-- Configuração do botão de fechar
-	CloseBtn.MouseButton1Click:Connect(function()
-		local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-			Size = UDim2.new(0, 0, 0, 0),
-			Position = UDim2.new(0, 5, 0, 0)
-		})
-		tween:Play()
-		tween.Completed:Wait()
-		ScreenGui:Destroy()
-	end)
-
-	local interface = {
-		Window = ScreenGui,
-		Main = MainFrame,
-		Content = ContentFrame,
-		AddSection = function(self, sectionName)
-			local sectionFrame = self:create("Frame", {
-				Name = sectionName,
-				Size = UDim2.new(1, 0, 0, 30),
-				BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-				Parent = ContentFrame
-			})
-			self:create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = sectionFrame })
-
-			self:create("TextLabel", {
-				Text = sectionName,
-				Font = Enum.Font.Gotham,
-				TextColor3 = Color3.new(1, 1, 1),
-				TextSize = 14,
-				BackgroundTransparency = 1,
-				Size = UDim2.new(1, -10, 1, 0),
-				Position = UDim2.new(0, 5, 0, 0),
-				TextXAlignment = Enum.TextXAlignment.Left,
-				Parent = sectionFrame
-			})
-
-			local container = self:create("Frame", {
-				Size = UDim2.new(1, 0, 0, 0),
-				BackgroundTransparency = 1,
-				Parent = ContentFrame
-			})
-
-			self:create("UIListLayout", {
-				SortOrder = Enum.SortOrder.LayoutOrder,
-				Padding = UDim.new(0, 6),
-				Parent = container
-			})
-
-			return container
-		end
-	}
-
-	-- Adicionar todas as funções de componentes
-	for key, fn in pairs(VampzLib) do
-		if key ~= "CreateWindow" then
-			interface[key] = fn
-		end
-	end
-
-	return interface
+	self.Window = screenGui
+	self.Content = scrollingFrame
+	return self
 end
 
--- COMPONENTS
+function VampzLib:AddSection(sectionName)
+	local sectionContainer = self:create("Frame", {
+		Size = UDim2.new(1, 0, 0, 40),
+		BackgroundTransparency = 1,
+		Parent = self.Content
+	})
 
-function VampzLib:AddButton(parent, text, callback)
-	local btn = self:create("TextButton", {
-		Size = UDim2.new(1, 0, 0, 40),  -- Aumentando o tamanho dos botões
-		BackgroundColor3 = Color3.fromRGB(50, 50, 50),
-		Text = text,
+	local sectionButton = self:create("TextButton", {
+		Size = UDim2.new(1, 0, 0, 40),
+		BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+		Text = "▼ " .. sectionName,
 		TextColor3 = Color3.new(1, 1, 1),
 		Font = Enum.Font.Gotham,
 		TextSize = 14,
 		AutoButtonColor = false,
-		Parent = parent
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = sectionContainer
+	})
+	self:create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = sectionButton })
+
+	local contentFrame = self:create("Frame", {
+		Size = UDim2.new(1, 0, 0, 0),
+		BackgroundTransparency = 1,
+		ClipsDescendants = true,
+		Parent = sectionContainer
 	})
 
-	self:create("UICorner", { Parent = btn })
+	local layout = self:create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 6),
+		Parent = contentFrame
+	})
 
-	btn.MouseEnter:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(70, 70, 70) }):Play()
+	-- Expand/Collapse
+	local expanded = false
+	sectionButton.MouseButton1Click:Connect(function()
+		expanded = not expanded
+		sectionButton.Text = (expanded and "▲ " or "▼ ") .. sectionName
+		local targetSize = expanded and layout.AbsoluteContentSize.Y or 0
+		TweenService:Create(contentFrame, TweenInfo.new(0.25), {
+			Size = UDim2.new(1, 0, 0, targetSize)
+		}):Play()
 	end)
 
-	btn.MouseLeave:Connect(function()
-		TweenService:Create(btn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(50, 50, 50) }):Play()
+	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		if expanded then
+			contentFrame.Size = UDim2.new(1, 0, 0, layout.AbsoluteContentSize.Y)
+		end
 	end)
 
-	btn.MouseButton1Click:Connect(function()
-		if callback then callback() end
-	end)
+	return contentFrame
 end
 
-function VampzLib:AddToggle(parent, text, default, callback)
-	local frame = self:create("Frame", {
-		Size = UDim2.new(1, 0, 0, 40),  -- Aumentando o tamanho
-		BackgroundTransparency = 1,
-		Parent = parent
-	})
-
-	local label = self:create("TextLabel", {
-		Size = UDim2.new(0, 8, 0, 1, 0),
+function VampzLib:AddButton(parent, text, callback)
+	local button = self:create("TextButton", {
+		Size = UDim2.new(1, 0, 0, 30),
+		BackgroundColor3 = Color3.fromRGB(60, 60, 60),
 		Text = text,
 		TextColor3 = Color3.new(1, 1, 1),
 		Font = Enum.Font.Gotham,
 		TextSize = 14,
-		BackgroundTransparency = 1,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = frame
+		AutoButtonColor = true,
+		Parent = parent
 	})
+	self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = button })
 
-	local toggleBtn = self:create("TextButton", {
-		Size = UDim2.new(0, 50, 0, 25),
-		Position = UDim2.new(1, -60, 0, 8),
-		BackgroundColor3 = default and Color3.fromRGB(0, 170, 127) or Color3.fromRGB(60, 60, 60),
-		Text = "",
-		Parent = frame
+	button.MouseButton1Click:Connect(callback)
+end
+
+function VampzLib:AddToggle(parent, text, callback)
+	local toggle = self:create("TextButton", {
+		Size = UDim2.new(1, 0, 0, 30),
+		BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+		Text = text .. ": OFF",
+		TextColor3 = Color3.new(1, 1, 1),
+		Font = Enum.Font.Gotham,
+		TextSize = 14,
+		AutoButtonColor = true,
+		Parent = parent
 	})
+	self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = toggle })
 
-	self:create("UICorner", { Parent = toggleBtn })
-
-	local enabled = default
-	toggleBtn.MouseButton1Click:Connect(function()
-		enabled = not enabled
-		TweenService:Create(toggleBtn, TweenInfo.new(0.2), {
-			BackgroundColor3 = enabled and Color3.fromRGB(0, 170, 127) or Color3.fromRGB(60, 60, 60)
-		}):Play()
-		if callback then callback(enabled) end
+	local state = false
+	toggle.MouseButton1Click:Connect(function()
+		state = not state
+		toggle.Text = text .. ": " .. (state and "ON" or "OFF")
+		callback(state)
 	end)
 end
 
-function VampzLib:AddSlider(parent, text, min, max, default, callback)
-	local frame = self:create("Frame", {
-		Size = UDim2.new(1, 0, 0, 60),  -- Aumentando o tamanho do slider
+function VampzLib:AddSlider(parent, text, min, max, callback)
+	local container = self:create("Frame", {
+		Size = UDim2.new(1, 0, 0, 40),
 		BackgroundTransparency = 1,
 		Parent = parent
 	})
 
 	local label = self:create("TextLabel", {
 		Size = UDim2.new(1, 0, 0, 20),
-		Text = text .. ": " .. tostring(default),
+		Text = text .. ": " .. min,
 		TextColor3 = Color3.new(1, 1, 1),
 		Font = Enum.Font.Gotham,
 		TextSize = 14,
 		BackgroundTransparency = 1,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = frame
+		Parent = container
 	})
 
 	local sliderBar = self:create("Frame", {
-		Size = UDim2.new(1, -20, 0, 10),
-		Position = UDim2.new(0, 10, 0, 30),
+		Size = UDim2.new(1, 0, 0, 10),
+		Position = UDim2.new(0, 0, 0, 25),
 		BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-		Parent = frame
+		Parent = container
 	})
+	self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = sliderBar })
 
-	self:create("UICorner", { Parent = sliderBar })
-
-	local sliderFill = self:create("Frame", {
-		Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
-		BackgroundColor3 = Color3.fromRGB(0, 170, 127),
+	local fill = self:create("Frame", {
+		Size = UDim2.new(0, 0, 1, 0),
+		BackgroundColor3 = Color3.fromRGB(100, 100, 255),
 		Parent = sliderBar
 	})
-
-	self:create("UICorner", { Parent = sliderFill })
+	self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = fill })
 
 	local dragging = false
-
 	local function update(input)
-		local pos = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
-		sliderFill.Size = UDim2.new(pos, 0, 1, 0)
-		local value = math.floor(min + (max - min) * pos)
-		label.Text = text .. ": " .. tostring(value)
-		if callback then callback(value) end
+		local pos = input.Position.X - sliderBar.AbsolutePosition.X
+		local pct = math.clamp(pos / sliderBar.AbsoluteSize.X, 0, 1)
+		local value = math.floor(min + (max - min) * pct)
+		fill.Size = UDim2.new(pct, 0, 1, 0)
+		label.Text = text .. ": " .. value
+		callback(value)
 	end
 
 	sliderBar.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
-			update(input)
 		end
 	end)
 
-	sliderBar.InputEnded:Connect(function(input)
+	UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = false
 		end
 	end)
 
 	UserInputService.InputChanged:Connect(function(input)
-		if dragging then
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 			update(input)
 		end
 	end)
+end
+
+function VampzLib:AddDropdown(parent, text, options, callback)
+	local container = self:create("Frame", {
+		Size = UDim2.new(1, 0, 0, 40),
+		BackgroundTransparency = 1,
+		Parent = parent
+	})
+
+	local dropdown = self:create("TextButton", {
+		Size = UDim2.new(1, 0, 0, 30),
+		BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+		Text = text,
+		TextColor3 = Color3.new(1, 1, 1),
+		Font = Enum.Font.Gotham,
+		TextSize = 14,
+		Parent = container
+	})
+	self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = dropdown })
+
+	local list = self:create("Frame", {
+		Size = UDim2.new(1, 0, 0, 0),
+		BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+		ClipsDescendants = true,
+		Parent = container
+	})
+
+	local layout = self:create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 4),
+		Parent = list
+	})
+
+	local open = false
+	dropdown.MouseButton1Click:Connect(function()
+		open = not open
+		local targetSize = open and layout.AbsoluteContentSize.Y or 0
+		TweenService:Create(list, TweenInfo.new(0.25), {
+			Size = UDim2.new(1, 0, 0, targetSize)
+		}):Play()
+	end)
+
+	for _, option in pairs(options) do
+		local optBtn = self:create("TextButton", {
+			Size = UDim2.new(1, 0, 0, 30),
+			BackgroundColor3 = Color3.fromRGB(70, 70, 70),
+			Text = option,
+			TextColor3 = Color3.new(1, 1, 1),
+			Font = Enum.Font.Gotham,
+			TextSize = 14,
+			Parent = list
+		})
+		self:create("UICorner", { CornerRadius = UDim.new(0, 6), Parent = optBtn })
+
+		optBtn.MouseButton1Click:Connect(function()
+			callback(option)
+			dropdown.Text = text .. ": " .. option
+			open = false
+			TweenService:Create(list, TweenInfo.new(0.25), {
+				Size = UDim2.new(1, 0, 0, 0)
+			}):Play()
+		end)
+	end
 end
 
 return VampzLib
