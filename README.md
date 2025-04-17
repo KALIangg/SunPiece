@@ -1,2 +1,7 @@
 # SunPiece
-Menu Scripts for sun piece, Made By Vampz
+Menu Scripts for Sun Piece - Made By Vampz.
+
+-------------------------------------------
+# PROJECTS
+Hypex Revamp v3 For SunPiece - In Devlopment💾
+Vampz Lib - Ready For Use🔥
