@@ -1,150 +1,124 @@
 local VampzLib = {}
 
+local TweenService = game:GetService("TweenService")
+
 function VampzLib:CreateWindow(title)
     local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
     ScreenGui.Name = "VampzUI"
 
     local MainFrame = Instance.new("Frame", ScreenGui)
-    MainFrame.Size = UDim2.new(0, 450, 0, 500)
-    MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
+    MainFrame.Size = UDim2.new(0, 400, 0, 500)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
     MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     MainFrame.BorderSizePixel = 0
-    MainFrame.Active = true
-    MainFrame.Draggable = true
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+
+    local UIStroke = Instance.new("UIStroke", MainFrame)
+    UIStroke.Color = Color3.fromRGB(255, 136, 0)
 
     local UICorner = Instance.new("UICorner", MainFrame)
-    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.CornerRadius = UDim.new(0, 6)
 
     local Title = Instance.new("TextLabel", MainFrame)
-    Title.Text = title
     Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Title.BackgroundTransparency = 1
+    Title.Text = "🔥 " .. title
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.Font = Enum.Font.GothamBold
     Title.TextSize = 18
 
-    local ContentFrame = Instance.new("ScrollingFrame", MainFrame)
-    ContentFrame.Position = UDim2.new(0, 0, 0, 40)
-    ContentFrame.Size = UDim2.new(1, 0, 1, -40)
-    ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    ContentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    ContentFrame.ScrollBarThickness = 6
-    ContentFrame.BackgroundTransparency = 1
+    local ContentScroller = Instance.new("ScrollingFrame", MainFrame)
+    ContentScroller.Size = UDim2.new(1, 0, 1, -40)
+    ContentScroller.Position = UDim2.new(0, 0, 0, 40)
+    ContentScroller.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ContentScroller.BackgroundTransparency = 1
+    ContentScroller.ScrollBarThickness = 6
+    ContentScroller.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-    local Layout = Instance.new("UIListLayout", ContentFrame)
+    local Layout = Instance.new("UIListLayout", ContentScroller)
     Layout.SortOrder = Enum.SortOrder.LayoutOrder
     Layout.Padding = UDim.new(0, 6)
 
-    local SectionFunctions = {}
-
-    function SectionFunctions:AddSection(name)
+    function VampzLib:AddSection(sectionName)
         local SectionHolder = Instance.new("Frame")
-        SectionHolder.Size = UDim2.new(1, -10, 0, 40)
+        SectionHolder.Size = UDim2.new(1, -10, 0, 30)
         SectionHolder.BackgroundTransparency = 1
-        SectionHolder.LayoutOrder = #ContentFrame:GetChildren()
         SectionHolder.AutomaticSize = Enum.AutomaticSize.Y
-        SectionHolder.Parent = ContentFrame
+        SectionHolder.LayoutOrder = 1
 
         local Toggle = Instance.new("TextButton", SectionHolder)
-        Toggle.Size = UDim2.new(1, 0, 0, 40)
-        Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        Toggle.Text = "▶ " .. name
+        Toggle.Size = UDim2.new(1, 0, 0, 30)
+        Toggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        Toggle.Text = "▼ " .. sectionName
         Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
         Toggle.Font = Enum.Font.Gotham
         Toggle.TextSize = 16
-        Toggle.AutoButtonColor = true
+        Toggle.AutoButtonColor = false
 
-        local Corner = Instance.new("UICorner", Toggle)
-        Corner.CornerRadius = UDim.new(0, 6)
+        local UICorner = Instance.new("UICorner", Toggle)
+        UICorner.CornerRadius = UDim.new(0, 4)
 
-        local SectionContent = Instance.new("Frame", SectionHolder)
-        SectionContent.BackgroundTransparency = 1
-        SectionContent.Size = UDim2.new(1, 0, 0, 0)
-        SectionContent.ClipsDescendants = true
-        SectionContent.Visible = false
-        SectionContent.AutomaticSize = Enum.AutomaticSize.Y
+        local Container = Instance.new("Frame", SectionHolder)
+        Container.Size = UDim2.new(1, 0, 0, 0)
+        Container.BackgroundTransparency = 1
+        Container.ClipsDescendants = true
+        Container.Visible = false
 
-        local ContentLayout = Instance.new("UIListLayout", SectionContent)
-        ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        ContentLayout.Padding = UDim.new(0, 4)
+        local ListLayout = Instance.new("UIListLayout", Container)
+        ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        ListLayout.Padding = UDim.new(0, 4)
+
+        local padding = Instance.new("UIPadding", Container)
+        padding.PaddingTop = UDim.new(0, 4)
+        padding.PaddingBottom = UDim.new(0, 4)
+
+        local open = false
 
         Toggle.MouseButton1Click:Connect(function()
-            for _, other in pairs(ContentFrame:GetChildren()) do
-                if other:IsA("Frame") and other:FindFirstChildWhichIsA("TextButton") then
-                    local otherToggle = other:FindFirstChildWhichIsA("TextButton")
-                    local otherContent = other:FindFirstChildWhichIsA("Frame")
-                    if otherContent and otherContent ~= SectionContent then
-                        otherContent.Visible = false
-                        otherToggle.Text = "▶ " .. otherToggle.Text:match("▶ (.+)") or otherToggle.Text:match("▼ (.+)")
-                    end
+            open = not open
+            Container.Visible = true
+
+            Toggle.Text = (open and "▲ " or "▼ ") .. sectionName
+
+            local targetHeight = 0
+            for _, child in pairs(Container:GetChildren()) do
+                if child:IsA("GuiObject") then
+                    targetHeight += child.AbsoluteSize.Y + ListLayout.Padding.Offset
                 end
             end
 
-            SectionContent.Visible = not SectionContent.Visible
-            if SectionContent.Visible then
-                Toggle.Text = "▼ " .. name
-            else
-                Toggle.Text = "▶ " .. name
+            local tween = TweenService:Create(Container, TweenInfo.new(0.25), {
+                Size = open and UDim2.new(1, 0, 0, targetHeight) or UDim2.new(1, 0, 0, 0)
+            })
+            tween:Play()
+
+            if not open then
+                tween.Completed:Wait()
+                Container.Visible = false
             end
         end)
 
-        local function addElement(instance)
-            instance.Size = UDim2.new(1, -10, 0, 30)
-            instance.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-            instance.TextColor3 = Color3.fromRGB(255, 255, 255)
-            instance.Font = Enum.Font.Gotham
-            instance.TextSize = 14
-            instance.Parent = SectionContent
-            local ic = Instance.new("UICorner", instance)
-            ic.CornerRadius = UDim.new(0, 4)
-        end
+        SectionHolder.Parent = ContentScroller
+        return {
+            AddButton = function(_, name, callback)
+                local Btn = Instance.new("TextButton", Container)
+                Btn.Size = UDim2.new(1, 0, 0, 30)
+                Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                Btn.Text = name
+                Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                Btn.Font = Enum.Font.Gotham
+                Btn.TextSize = 14
+                Btn.AutoButtonColor = true
 
-        local sectionAPI = {}
+                local corner = Instance.new("UICorner", Btn)
+                corner.CornerRadius = UDim.new(0, 4)
 
-        function sectionAPI:AddButton(text, callback)
-            local Button = Instance.new("TextButton")
-            Button.Text = text
-            Button.MouseButton1Click:Connect(function()
-                pcall(callback)
-            end)
-            addElement(Button)
-        end
-
-        function sectionAPI:AddToggle(text, callback)
-            local ToggleBtn = Instance.new("TextButton")
-            local state = false
-            local function updateText()
-                ToggleBtn.Text = (state and "[✓] " or "[ ] ") .. text
+                Btn.MouseButton1Click:Connect(callback)
             end
-            updateText()
-
-            ToggleBtn.MouseButton1Click:Connect(function()
-                state = not state
-                updateText()
-                pcall(callback, state)
-            end)
-            addElement(ToggleBtn)
-        end
-
-        function sectionAPI:AddDropdown(options, callback)
-            local Dropdown = Instance.new("TextButton")
-            local selected = options[1]
-            Dropdown.Text = "▼ " .. selected
-            local index = 1
-
-            Dropdown.MouseButton1Click:Connect(function()
-                index = (index % #options) + 1
-                selected = options[index]
-                Dropdown.Text = "▼ " .. selected
-                pcall(callback, selected)
-            end)
-            addElement(Dropdown)
-        end
-
-        return sectionAPI
+        }
     end
 
-    return SectionFunctions
+    return VampzLib
 end
 
 return VampzLib
