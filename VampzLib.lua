@@ -6,6 +6,16 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
+local CoreGui = game:GetService("StarterGui")
+
+local function Notify(title, text, duration)
+	CoreGui:SetCore("SendNotification", {
+		Title = "Notification";
+		Text = "Is this a notification?";
+		Duration = 5;
+	})
+end
+
 local function create(class, props)
 	local inst = Instance.new(class)
 	for prop, val in pairs(props) do
