@@ -34,9 +34,10 @@ function VampzLib:CreateWindow(settings)
 		Parent = LocalPlayer:WaitForChild("PlayerGui")
 	})
 
+	-- Aumentando o tamanho da janela principal
 	local MainFrame = self:create("Frame", {
 		Name = "MainFrame",
-		Size = UDim2.new(0, 600, 0, 320),
+		Size = UDim2.new(0, 800, 0, 450),  -- Aumentei o tamanho da janela
 		Position = UDim2.new(0, 5, 0, 5),
 		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
 		BorderSizePixel = 0,
@@ -90,13 +91,13 @@ function VampzLib:CreateWindow(settings)
 		Parent = TopBar
 	})
 
-	-- Adicionando o ScrollingFrame
+	-- Aumentando a área do ScrollingFrame e ajustando o CanvasSize
 	local ContentFrame = self:create("ScrollingFrame", {
 		Name = "Content",
 		Size = UDim2.new(1, -20, 1, -45),
 		Position = UDim2.new(0, 10, 0, 40),
 		BackgroundTransparency = 1,
-		CanvasSize = UDim2.new(0, 0, 0, 0),
+		CanvasSize = UDim2.new(0, 0, 0, 0),  -- CanvasSize será ajustado dinamicamente
 		ScrollingDirection = Enum.ScrollingDirection.Y,
 		Parent = MainFrame
 	})
@@ -184,7 +185,7 @@ end
 
 function VampzLib:AddButton(parent, text, callback)
 	local btn = self:create("TextButton", {
-		Size = UDim2.new(1, 0, 0, 30),
+		Size = UDim2.new(1, 0, 0, 40),  -- Aumentando o tamanho dos botões
 		BackgroundColor3 = Color3.fromRGB(50, 50, 50),
 		Text = text,
 		TextColor3 = Color3.new(1, 1, 1),
@@ -211,7 +212,7 @@ end
 
 function VampzLib:AddToggle(parent, text, default, callback)
 	local frame = self:create("Frame", {
-		Size = UDim2.new(1, 0, 0, 30),
+		Size = UDim2.new(1, 0, 0, 40),  -- Aumentando o tamanho
 		BackgroundTransparency = 1,
 		Parent = parent
 	})
@@ -228,8 +229,8 @@ function VampzLib:AddToggle(parent, text, default, callback)
 	})
 
 	local toggleBtn = self:create("TextButton", {
-		Size = UDim2.new(0, 40, 0, 20),
-		Position = UDim2.new(1, -50, 0, 5, -10),
+		Size = UDim2.new(0, 50, 0, 25),
+		Position = UDim2.new(1, -60, 0, 8),
 		BackgroundColor3 = default and Color3.fromRGB(0, 170, 127) or Color3.fromRGB(60, 60, 60),
 		Text = "",
 		Parent = frame
@@ -249,7 +250,7 @@ end
 
 function VampzLib:AddSlider(parent, text, min, max, default, callback)
 	local frame = self:create("Frame", {
-		Size = UDim2.new(1, 0, 0, 50),
+		Size = UDim2.new(1, 0, 0, 60),  -- Aumentando o tamanho do slider
 		BackgroundTransparency = 1,
 		Parent = parent
 	})
